@@ -88,6 +88,29 @@ class WedeClient(private val options: WedeClientOptions) {
         // Refresh teams and catalog from server when online
         cache ?: return
     }
+
+    suspend fun requestBackup(missionId: String, eventId: String, eventLat: Double? = null, eventLng: Double? = null): String {
+        val body = buildMap {
+            put("event_id", eventId)
+            put("notes", "Backup requested by field operator for mission $missionId")
+            eventLat?.let { put("event_lat", it) }
+            eventLng?.let { put("event_lng", it) }
+        }
+        return request("POST", "/v1/teams/dispatch", body)
+    }
+
+    suspend fun updateDispatchSettings(
+        dispatchMode: Boolean? = null,
+        dispatchThreshold: Double? = null,
+        reinforcementTimeoutMin: Int? = null
+    ): String {
+        val body = buildMap {
+            dispatchMode?.let { put("dispatch_mode", it) }
+            dispatchThreshold?.let { put("dispatch_threshold", it) }
+            reinforcementTimeoutMin?.let { put("reinforcement_timeout_min", it) }
+        }
+        return request("PATCH", "/v1/tenant/dispatch-settings", body)
+    }
 }
 
 class WedeAuthException(message: String) : Exception(message)
